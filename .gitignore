@@ -44,3 +44,11 @@ next-env.d.ts
 *~
 .vscode/*
 !.vscode/settings.json
+
+# Puppeteer
+.cache/puppeteer/
+*.chromium-browser-snapshots/
+
+# Logs
+logs/
+*.log
