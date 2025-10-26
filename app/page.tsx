@@ -1,17 +1,18 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import React from 'react'
 
 import { URLInputForm } from '@/components/seo/url-input-form'
 import type { FetchedHTML, FetchError } from '@/types/seo'
 
 export default function HomePage() {
+  const router = useRouter()
+
   const handleFetchComplete = (data: FetchedHTML) => {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('URL fetched successfully:', data.url)
-    }
-    // Future: Pass data to SEO analysis component
+    // Redirect to results page with the URL as a query parameter
+    const encodedUrl = encodeURIComponent(data.finalUrl)
+    router.push(`/results?url=${encodedUrl}`)
   }
 
   const handleFetchError = (error: FetchError) => {
@@ -19,7 +20,7 @@ export default function HomePage() {
       // eslint-disable-next-line no-console
       console.error('Failed to fetch URL:', error.message)
     }
-    // Future: Log errors for analytics
+    // Error is already shown in the URLInputForm component
   }
 
   return (

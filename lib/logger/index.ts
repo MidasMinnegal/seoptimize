@@ -24,9 +24,26 @@ function getLogLevel(): LogLevel {
 
 /**
  * Determine if we should use pretty printing (development) or JSON (production)
+ * Note: pino-pretty is not compatible with edge runtime or bundled environments
+ * It also doesn't work in Next.js API routes due to webpack bundling
  */
 function shouldUsePrettyPrint(): boolean {
-  return process.env.NODE_ENV === 'development'
+  // Disable pretty printing in edge runtime
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    return false
+  }
+  // Disable if we can't determine environment (safer default)
+  if (!process.env.NODE_ENV) {
+    return false
+  }
+  // Disable in production
+  if (process.env.NODE_ENV !== 'development') {
+    return false
+  }
+  // Disable pino-pretty entirely - it doesn't work reliably in Next.js
+  // API routes are bundled by webpack which breaks pino-pretty transport resolution
+  // Use JSON logging for all environments to avoid runtime errors
+  return false
 }
 
 /**

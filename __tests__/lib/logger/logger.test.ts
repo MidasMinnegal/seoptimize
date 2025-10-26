@@ -4,7 +4,7 @@
  * Task: T011 - Write comprehensive logger tests
  */
 
-import type { LogContext,Logger } from '@/types/logger'
+import type { LogContext, Logger } from '@/types/logger'
 
 // Mock pino logger instance
 const mockPinoInstance = {
@@ -72,8 +72,9 @@ describe('Logger', () => {
       }
     })
 
-    it('should use pretty print in development', () => {
-      // Mock the getters before resetting modules
+    it('should use JSON format (pino-pretty disabled for Next.js compatibility)', () => {
+      // pino-pretty is disabled in all environments due to Next.js API route bundling
+      // which breaks the transport resolution
       Object.defineProperty(process.env, 'NODE_ENV', {
         value: 'development',
         writable: true,
@@ -86,9 +87,13 @@ describe('Logger', () => {
 
       expect(mockPino).toHaveBeenCalledWith(
         expect.objectContaining({
-          transport: expect.objectContaining({
-            target: 'pino-pretty',
-          }),
+          level: 'info',
+        })
+      )
+      // Should NOT have transport property (using JSON format)
+      expect(mockPino).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          transport: expect.anything(),
         })
       )
     })

@@ -13,6 +13,14 @@ import DOMPurify from 'isomorphic-dompurify'
  */
 const SANITIZER_CONFIG = {
   ALLOWED_TAGS: [
+    // Document structure
+    'html',
+    'head',
+    'body',
+    'meta',
+    'title',
+    'link',
+    // Content tags
     'p',
     'h1',
     'h2',
@@ -34,7 +42,21 @@ const SANITIZER_CONFIG = {
     'code',
     'pre',
   ],
-  ALLOWED_ATTR: ['href', 'src', 'alt', 'target', 'rel', 'width', 'height', 'title'],
+  ALLOWED_ATTR: [
+    'href',
+    'src',
+    'alt',
+    'target',
+    'rel',
+    'width',
+    'height',
+    'title',
+    'name',
+    'content',
+    'property',
+    'charset',
+    'lang',
+  ],
   // Remove style, id, class, and data- attributes
   FORBID_ATTR: [
     'style',
@@ -53,14 +75,15 @@ const SANITIZER_CONFIG = {
   RETURN_DOM: false,
   RETURN_DOM_FRAGMENT: false,
   RETURN_TRUSTED_TYPE: false,
+  WHOLE_DOCUMENT: true, // Preserve <html>, <head>, <body> structure for SEO analysis
 }
 
 /**
  * Sanitizes HTML content by removing potentially dangerous elements and attributes
- * while preserving safe, semantic HTML structure.
+ * while preserving safe, semantic HTML structure and SEO-relevant tags.
  *
- * Allowed tags: p, h1-h6, a, img, ul, ol, li, strong, em, br, span, div, blockquote, code, pre
- * Allowed attributes: href, src, alt, target, rel, width, height, title
+ * Allowed tags: html, head, body, meta, title, link, p, h1-h6, a, img, ul, ol, li, strong, em, br, span, div, blockquote, code, pre
+ * Allowed attributes: href, src, alt, target, rel, width, height, title, name, content, property, charset, lang
  * Removed attributes: style, id, class, data-*, on* event handlers
  *
  * @param html - The HTML string to sanitize

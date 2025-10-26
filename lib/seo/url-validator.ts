@@ -5,8 +5,6 @@
 
 import type { ValidationError, ValidationErrorCode, ValidationResult } from '@/types/seo'
 
-const isProduction = process.env.NODE_ENV === 'production'
-
 // Validation error messages
 export const validationErrorMessages: Record<ValidationErrorCode, string> = {
   EMPTY_VALUE: 'Please enter a URL',
@@ -25,14 +23,20 @@ function createValidationError(code: ValidationErrorCode): ValidationError {
 }
 
 function isPrivateIP(hostname: string): boolean {
-  // Check for localhost variations
-  if (['localhost', '127.0.0.1', '::1', '0.0.0.0'].includes(hostname.toLowerCase())) {
+  const lowerHostname = hostname.toLowerCase()
+
+  // Check for localhost variations (including IPv6 with brackets removed)
+  const cleanHostname = lowerHostname.replace(/^\[|\]$/g, '') // Remove brackets from IPv6
+  if (
+    ['localhost', '127.0.0.1', '::1', '0.0.0.0'].includes(cleanHostname) ||
+    cleanHostname === 'localhost'
+  ) {
     return true
   }
 
   // Check for private IP ranges (10.x.x.x, 172.16-31.x.x, 192.168.x.x)
   const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
-  const match = hostname.match(ipv4Regex)
+  const match = cleanHostname.match(ipv4Regex)
 
   if (match) {
     const [, a, b] = match.map(Number)
@@ -53,7 +57,7 @@ export function normalizeURL(url: string): string {
   const trimmedUrl = url.trim()
 
   // If URL already has a protocol, return as-is
-  if (trimmedUrl.match(/^https?:\/\//i)) {
+  if (trimmedUrl.match(/^[a-z][a-z0-9+.-]*:\/\//i)) {
     return trimmedUrl
   }
 
@@ -72,8 +76,20 @@ export function validateURL(url: string): ValidationResult {
     return { valid: false, error: createValidationError('EMPTY_VALUE') }
   }
 
+  const trimmedUrl = url.trim()
+
+  // Check for unsupported protocols before normalization
+  // Handle protocols without // (javascript:, data:, mailto:, tel:, etc.)
+  const protocolMatch = trimmedUrl.match(/^([a-z][a-z0-9+.-]*):/)
+  if (protocolMatch) {
+    const protocol = protocolMatch[1].toLowerCase()
+    if (!['http', 'https'].includes(protocol)) {
+      return { valid: false, error: createValidationError('UNSUPPORTED_PROTOCOL') }
+    }
+  }
+
   // Normalize URL (add https:// if missing)
-  const normalizedUrl = normalizeURL(url)
+  const normalizedUrl = normalizeURL(trimmedUrl)
 
   // Parse URL
   let parsedUrl: URL
@@ -83,14 +99,22 @@ export function validateURL(url: string): ValidationResult {
     return { valid: false, error: createValidationError('INVALID_FORMAT') }
   }
 
-  // Check protocol
+  // Double-check protocol (redundant but safe)
   if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
     return { valid: false, error: createValidationError('UNSUPPORTED_PROTOCOL') }
   }
 
   // Check for localhost/private IPs in production
+  const isProduction = process.env.NODE_ENV === 'production'
   if (isProduction && isPrivateIP(parsedUrl.hostname)) {
-    if (parsedUrl.hostname === 'localhost' || parsedUrl.hostname === '127.0.0.1') {
+    const hostname = parsedUrl.hostname.toLowerCase()
+    const cleanHostname = hostname.replace(/^\[|\]$/g, '') // Remove IPv6 brackets
+    if (
+      cleanHostname === 'localhost' ||
+      cleanHostname === '127.0.0.1' ||
+      cleanHostname === '::1' ||
+      cleanHostname === '0.0.0.0'
+    ) {
       return { valid: false, error: createValidationError('LOCALHOST_BLOCKED') }
     }
     return { valid: false, error: createValidationError('PRIVATE_IP') }
