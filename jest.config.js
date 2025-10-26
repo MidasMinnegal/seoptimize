@@ -28,6 +28,7 @@ const customJestConfig = {
       statements: 80,
     },
   },
+  transformIgnorePatterns: ['node_modules/(?!(isomorphic-dompurify|jsdom|parse5|dompurify)/)'],
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
