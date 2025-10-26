@@ -1,50 +1,73 @@
 'use client'
 
-import { Button } from '@components/ui/button'
 import React from 'react'
 
+import { URLInputForm } from '@/components/seo/url-input-form'
+import type { FetchedHTML, FetchError } from '@/types/seo'
+
 export default function HomePage() {
-  const handleClick = () => {
-    // Demo button handler - in production, this would perform an action
+  const handleFetchComplete = (data: FetchedHTML) => {
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log('URL fetched successfully:', data.url)
+    }
+    // Future: Pass data to SEO analysis component
+  }
+
+  const handleFetchError = (error: FetchError) => {
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('Failed to fetch URL:', error.message)
+    }
+    // Future: Log errors for analytics
   }
 
   return (
     <div className="home-page">
       <section className="hero">
-        <h2>Welcome to SEOptimize</h2>
-        <p>
-          A Next.js application built with TypeScript, demonstrating minimal code style and best
-          practices.
+        <h1 className="hero-title">Analyze Your Website for SEO</h1>
+        <p className="hero-description">
+          Enter your website URL below to fetch and analyze its content for SEO optimization
+          opportunities.
         </p>
       </section>
 
-      <section className="features">
-        <h3>Features</h3>
-        <ul>
-          <li>TypeScript strict mode for maximum type safety</li>
-          <li>Minimal code style with ESLint and Prettier</li>
-          <li>Automated pre-commit hooks for code quality</li>
-          <li>Path aliases for clean imports</li>
-        </ul>
+      <section className="url-input-section">
+        <URLInputForm onFetchComplete={handleFetchComplete} onFetchError={handleFetchError} />
       </section>
 
-      <section className="demo">
-        <h3>Component Demo</h3>
-        <div className="button-group">
-          <Button variant="primary" size="large" onClick={handleClick}>
-            Primary Button
-          </Button>
-          <Button variant="secondary" size="medium" onClick={handleClick}>
-            Secondary Button
-          </Button>
-          <Button variant="outline" size="small" onClick={handleClick}>
-            Outline Button
-          </Button>
-          <Button variant="primary" disabled>
-            Disabled Button
-          </Button>
-        </div>
-      </section>
+      <style jsx>{`
+        .home-page {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 2rem;
+        }
+
+        .hero {
+          text-align: center;
+          margin-bottom: 3rem;
+        }
+
+        .hero-title {
+          font-size: 2.5rem;
+          font-weight: 700;
+          color: #111;
+          margin: 0 0 1rem;
+        }
+
+        .hero-description {
+          font-size: 1.125rem;
+          color: #666;
+          margin: 0;
+          max-width: 600px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .url-input-section {
+          margin-top: 2rem;
+        }
+      `}</style>
     </div>
   )
 }
